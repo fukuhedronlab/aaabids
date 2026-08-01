@@ -187,6 +187,11 @@ label {
   flex-wrap: wrap;
   margin-bottom: 14px;
 }
+.filter-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .chip {
   border: 1px solid var(--line-strong);
   background: transparent;
@@ -434,11 +439,25 @@ select.compact,
     justify-content: space-between;
   }
   .filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .filters .divider {
+    display: none;
+  }
+  .filter-group {
     gap: 6px;
   }
   .chip {
     padding: 6px 10px;
     font-size: 12.5px;
+  }
+  /* Keep the wallet dropdown on-screen when the button sits at the left edge on mobile. */
+  .menu {
+    left: 0;
+    right: auto;
+    max-width: calc(100vw - 32px);
   }
   .row {
     width: 100%;
@@ -449,7 +468,12 @@ select.compact,
   }
   .footer-inner {
     flex-direction: column;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .footer-links {
+    align-items: center;
+    gap: 14px;
   }
 }
 

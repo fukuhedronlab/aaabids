@@ -55,20 +55,24 @@ export function OfferBook({ ownedPieces }: { ownedPieces: Address[] }) {
       <p className="sub">Standing offers on individual pieces and the whole collection.</p>
 
       <div className="filters">
-        {(["active", "history", "all"] as StatusFilter[]).map((s) => (
-          <button key={s} className="chip" data-active={status === s} onClick={() => setStatus(s)}>
-            {s[0].toUpperCase() + s.slice(1)}
-          </button>
-        ))}
+        <div className="filter-group">
+          {(["active", "history", "all"] as StatusFilter[]).map((s) => (
+            <button key={s} className="chip" data-active={status === s} onClick={() => setStatus(s)}>
+              {s[0].toUpperCase() + s.slice(1)}
+            </button>
+          ))}
+        </div>
         <span className="divider" />
-        {(["all", "collection", "piece"] as TypeFilter[]).map((t) => (
-          <button key={t} className="chip" data-active={type === t} onClick={() => setType(t)}>
-            {t === "all" ? "All types" : t === "collection" ? "Collection" : "Per-piece"}
+        <div className="filter-group">
+          {(["all", "collection", "piece"] as TypeFilter[]).map((t) => (
+            <button key={t} className="chip" data-active={type === t} onClick={() => setType(t)}>
+              {t === "all" ? "All types" : t === "collection" ? "Collection" : "Per-piece"}
+            </button>
+          ))}
+          <button className="chip" data-active={mineOnly} onClick={() => setMineOnly((m) => !m)}>
+            My bids
           </button>
-        ))}
-        <button className="chip" data-active={mineOnly} onClick={() => setMineOnly((m) => !m)}>
-          My bids
-        </button>
+        </div>
       </div>
 
       {loading && offers.length === 0 ? (
