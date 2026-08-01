@@ -1,0 +1,19 @@
+{
+  "name": "aaabids-admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AAAbids ADMIN CONSOLE — local-only operator interface for deploy + ongoing admin. Do NOT deploy this publicly.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "viem": "^2.21.37"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

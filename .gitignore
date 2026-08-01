@@ -1,0 +1,27 @@
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/.env
+
+# Node / Next.js
+node_modules/
+web/.next/
+web/out/
+web/build/
+.env
+.env*.local
+
+# Misc
+.DS_Store
+*.log
+
+# Admin console
+admin/dist/
+admin/.vite/
+
+# Claude Code tooling (local only)
+.claude/
+
+# Foundry deps (restore with: cd contracts && forge install)
+contracts/lib/
