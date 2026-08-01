@@ -19,7 +19,7 @@ export function PlaceBid({ onDone }: { onDone?: () => void }) {
   const { address, isConnected } = useAccount();
   const [mode, setMode] = useState<"piece" | "collection">("collection");
   const [piece, setPiece] = useState<string>("");
-  const [price, setPrice] = useState("1");
+  const [price, setPrice] = useState("");
   const [qty, setQty] = useState("1");
   const [expiryIdx, setExpiryIdx] = useState(0);
 
@@ -137,6 +137,7 @@ export function PlaceBid({ onDone }: { onDone?: () => void }) {
             <label>{mode === "collection" ? "Price per piece" : "Bid amount"}</label>
             <input
               inputMode="decimal"
+              placeholder="0.0"
               value={price}
               onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g, ""))}
             />
