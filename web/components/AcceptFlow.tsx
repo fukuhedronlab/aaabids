@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
 import { useCapabilities, useSendCalls, useCallsStatus } from "wagmi/experimental";
 import { encodeFunctionData, type Address } from "viem";
 import { aaaBidsAbi, pieceAbi } from "@/lib/abis";
@@ -41,7 +41,8 @@ export function AcceptFlow({
         (offer.pricePerItem * BigInt(feeBps)) / 10000n
       : undefined;
 
-  // Does the connected wallet support atomic batching (EIP-5792 / 7702)?
+  // Accept is ALWAYS a single atomic transaction (list + accept batched via EIP-5792). This is the
+  // only supported path — it's the only one that's snipe-proof and guarantees the bidder the piece.
   const { data: caps } = useCapabilities({ query: { enabled: !!address } });
   const chainCaps = caps?.[chainId ?? appConfig.chainId] as
     | { atomic?: { status?: string }; atomicBatch?: { supported?: boolean } }
@@ -70,8 +71,8 @@ export function AcceptFlow({
     <div className="panel inset">
       <h2>Accept bid #{offer.id.toString()}</h2>
       <p className="sub">
-        Sell one piece for {eth(offer.pricePerItem)}. The piece only moves when you&apos;re paid — if
-        anything fails, you keep it.
+        Listing and accepting happen in a single atomic transaction — the sale can&apos;t be sniped,
+        the bidder is guaranteed the piece, and if anything fails you keep it.
       </p>
 
       <div className="stack">
@@ -106,12 +107,11 @@ export function AcceptFlow({
             {atomicSupported ? (
               <AtomicAccept canSettle={canSettle} buildCalls={buildCalls} onDone={onDone} />
             ) : (
-              <TwoStepAccept
-                selected={selected}
-                sellerProceeds={sellerProceeds}
-                offerId={offer.id}
-                onDone={onDone}
-              />
+              <div className="notice">
+                Accepting requires a wallet that supports <b>batched transactions</b> (EIP-5792) so the
+                list + accept run atomically. Connect MetaMask, Rabby, Coinbase Wallet, or any
+                smart-account / EIP-7702 wallet and reopen this.
+              </div>
             )}
           </>
         )}
@@ -120,7 +120,7 @@ export function AcceptFlow({
   );
 }
 
-/** One-click atomic accept for smart / EIP-7702 wallets — list + accept in a single transaction. */
+/** The one accept path: list + accept in a single atomic transaction (EIP-5792 `wallet_sendCalls`). */
 function AtomicAccept({
   canSettle,
   buildCalls,
@@ -155,88 +155,7 @@ function AtomicAccept({
       >
         {isPending || (id && !confirmed) ? "Accepting…" : "Accept bid — 1 transaction"}
       </button>
-      <div className="notice">
-        Atomic wallet detected: listing and accepting happen in a single transaction, so the sale
-        can&apos;t be sniped and the bidder is guaranteed the piece.
-      </div>
       {error && <div className="err">{error.message}</div>}
-    </>
-  );
-}
-
-/** Fallback for plain EOAs: two separate transactions (small snipe window between them). */
-function TwoStepAccept({
-  selected,
-  sellerProceeds,
-  offerId,
-  onDone,
-}: {
-  selected: Address | "";
-  sellerProceeds: bigint | undefined;
-  offerId: bigint;
-  onDone?: () => void;
-}) {
-  const list = useWriteContract();
-  const accept = useWriteContract();
-  const listRcpt = useWaitForTransactionReceipt({ hash: list.data });
-  const acceptRcpt = useWaitForTransactionReceipt({ hash: accept.data });
-
-  const { data: listedFlag, refetch: refetchFlag } = useReadContract({
-    address: selected || undefined,
-    abi: pieceAbi,
-    functionName: "currentOffer",
-    query: { enabled: !!selected },
-  });
-  useEffect(() => {
-    if (listRcpt.isSuccess) refetchFlag();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listRcpt.isSuccess]);
-  useEffect(() => {
-    if (acceptRcpt.isSuccess) onDone?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [acceptRcpt.isSuccess]);
-  const listed = (listedFlag ?? 0n) !== 0n;
-  const listing = list.isPending || listRcpt.isLoading;
-  const accepting = accept.isPending || acceptRcpt.isLoading;
-
-  return (
-    <>
-      <div className="btn-steps">
-        <button
-          className="btn-sm"
-          disabled={!selected || listing || sellerProceeds === undefined}
-          onClick={() =>
-            list.writeContract({
-              address: selected as Address,
-              abi: pieceAbi,
-              functionName: "listForSale",
-              args: [sellerProceeds!],
-            })
-          }
-        >
-          {listing ? "Listing…" : listed ? "Re-list at exact price" : `1 · List at ${eth(sellerProceeds)}`}
-        </button>
-        <button
-          className="btn-accent btn-sm"
-          disabled={!listed || accepting}
-          onClick={() =>
-            accept.writeContract({
-              address: appConfig.bids,
-              abi: aaaBidsAbi,
-              functionName: "acceptOffer",
-              args: [offerId, selected as Address],
-            })
-          }
-        >
-          {accepting ? "Accepting…" : "2 · Accept bid"}
-        </button>
-      </div>
-      <div className="notice">
-        Your wallet doesn&apos;t support atomic batching, so this is two transactions. Submit via a
-        private mempool (Flashbots Protect) so the listing can&apos;t be sniped between them.
-      </div>
-      {list.error && <div className="err">{list.error.message}</div>}
-      {accept.error && <div className="err">{accept.error.message}</div>}
     </>
   );
 }
