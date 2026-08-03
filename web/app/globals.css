@@ -329,7 +329,7 @@ footer {
   align-items: baseline;
 }
 /* Quiet easter-egg link — looks like the surrounding muted text. */
-.footer a.stealth {
+footer a.stealth {
   color: inherit;
   text-decoration: none;
 }
