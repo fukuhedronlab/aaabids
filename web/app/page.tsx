@@ -57,12 +57,15 @@ export default function Home() {
             piece unpaid.
           </span>
           <span className="footer-links">
-            {appConfig.githubUrl && (
-              <a href={appConfig.githubUrl} target="_blank" rel="noopener noreferrer">
-                GitHub ↗
-              </a>
-            )}
-            <span className="mono">{chain?.name ?? appConfig.chainName}</span>
+            {/* The chain name is a quiet link to the source — no arrow, styled like plain text. */}
+            <a
+              href={appConfig.githubUrl || "https://github.com/fukuhedronlab/aaabids"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mono stealth"
+            >
+              {chain?.name ?? appConfig.chainName}
+            </a>
           </span>
         </div>
       </footer>
